@@ -1,21 +1,19 @@
 import math
-
 import numpy as np
 
 trainDataPath = "./data/train_"
 trainDataIn = trainDataPath + "in.csv"
-testDataOut = trainDataPath + "out.csv"
+trainDataOut = trainDataPath + "out.csv"
 
 testDataPath = "./data/test_"
 testDataIn = testDataPath + "in.csv"
 testDataOut = testDataPath + "out.csv"
 
 def main():
-    i=0
     numberVectorDic = {}
     modelDic = {}
     inFile = open(trainDataIn)
-    outFile = open(testDataOut)
+    outFile = open(trainDataOut)
 
     #Fill dics
     for i in range(0,10):
@@ -28,12 +26,16 @@ def main():
 
     GetNumberAverageAndRadius(numberVectorDic, modelDic)
 
-    TestModel(modelDic)
+    print("Train set")
+    TestModel(modelDic,trainDataIn,trainDataOut)
+
+    print("Test set")
+    TestModel(modelDic,testDataIn,testDataOut)
 
 def GetNumberVectors(inFile, outFile, numberVectorDic):
     #First read
-    inLine = inFile.readline();
-    outLine = outFile.readline();
+    inLine = inFile.readline()
+    outLine = outFile.readline()
 
     #When line is readable get vector/output
     while (inLine and outLine):
@@ -43,7 +45,7 @@ def GetNumberVectors(inFile, outFile, numberVectorDic):
         numberVectorDic[output].append(vector)
 
         inLine = inFile.readline()
-        outLine = outFile.readline();
+        outLine = outFile.readline()
 
 def GetNumberAverageAndRadius(numberVectorDic, modelDic):
     #for each number (0..9) get average vector and calculate radius
@@ -67,16 +69,15 @@ def CalculateRadius(average,vectors):
                 radius[i] = abs(difference)
     return radius
 
-def TestModel(model):
+def TestModel(model,inFilePath,outFilePath):
     positive = 0
     negative = 0
 
-    inFile = open(testDataIn)
-    outFile = open(testDataOut)
+    inFile = open(inFilePath)
+    outFile = open(outFilePath)
 
     inLine = inFile.readline()
     outLine = outFile.readline()
-
 
     while(inLine and outLine):
         output = int(outLine[0])
@@ -91,20 +92,25 @@ def TestModel(model):
         inLine = inFile.readline()
         outLine = outFile.readline()
 
-    print(positive)
-    print(negative)
+    inFile.close()
+    outFile.close()
+
+    print("True Classified: "+str(positive))
+    print("False Classified: "+str(negative))
+    print()
 
 def PredictNumber(model, vector):
     nearestDistance = math.inf
     prediction = -1
+
     for key in model.keys():
         average = np.array(model[key]["average"])
         vector = np.array(vector)
         distance = sum(np.abs(vector-average))
-        #distance = np.sum(np.sqrt(np.power(vector-average,2)))
 
         if distance < nearestDistance:
             nearestDistance = distance
             prediction = key
     return prediction
+
 main()
