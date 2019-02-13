@@ -1,15 +1,21 @@
+import math
+
 import numpy as np
 
-dataPath = "./data/train_"
-dataIn = dataPath+"in.csv"
-dataOut = dataPath+"out.csv"
+trainDataPath = "./data/train_"
+trainDataIn = trainDataPath + "in.csv"
+testDataOut = trainDataPath + "out.csv"
+
+testDataPath = "./data/test_"
+testDataIn = testDataPath + "in.csv"
+testDataOut = testDataPath + "out.csv"
 
 def main():
     i=0
     numberVectorDic = {}
     modelDic = {}
-    inFile = open(dataIn)
-    outFile = open(dataOut)
+    inFile = open(trainDataIn)
+    outFile = open(testDataOut)
 
     #Fill dics
     for i in range(0,10):
@@ -17,8 +23,12 @@ def main():
         modelDic.update({i:{}})
 
     GetNumberVectors(inFile,outFile,numberVectorDic)
+    inFile.close()
+    outFile.close()
+
     GetNumberAverageAndRadius(numberVectorDic, modelDic)
-    print(modelDic)
+
+    TestModel(modelDic)
 
 def GetNumberVectors(inFile, outFile, numberVectorDic):
     #First read
@@ -57,4 +67,44 @@ def CalculateRadius(average,vectors):
                 radius[i] = abs(difference)
     return radius
 
+def TestModel(model):
+    positive = 0
+    negative = 0
+
+    inFile = open(testDataIn)
+    outFile = open(testDataOut)
+
+    inLine = inFile.readline()
+    outLine = outFile.readline()
+
+
+    while(inLine and outLine):
+        output = int(outLine[0])
+        vector = list(map(float, inLine.replace("\n", "").split(",")));
+        prediction = PredictNumber(model, vector)
+
+        if(prediction == output):
+            positive +=1
+        else:
+            negative +=1
+
+        inLine = inFile.readline()
+        outLine = outFile.readline()
+
+    print(positive)
+    print(negative)
+
+def PredictNumber(model, vector):
+    nearestDistance = math.inf
+    prediction = -1
+    for key in model.keys():
+        average = np.array(model[key]["average"])
+        vector = np.array(vector)
+        distance = sum(np.abs(vector-average))
+        #distance = np.sum(np.sqrt(np.power(vector-average,2)))
+
+        if distance < nearestDistance:
+            nearestDistance = distance
+            prediction = key
+    return prediction
 main()
