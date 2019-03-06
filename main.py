@@ -2,6 +2,7 @@ import math
 import numpy as np
 from sklearn import metrics as skm
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 sns.set()
 
@@ -45,6 +46,7 @@ def Assignment3():
     numberVectorDic = GetNumberVectors()
 
     features = ExtractFeatures(numberVectorDic)
+    print(features)
 
 
 def CreateConfusionMatrixs(size=10):
@@ -59,9 +61,16 @@ def CreateConfusionMatrixs(size=10):
     return matrix,matrix
 
 def ExtractFeatures(numberVectorDic):
-    print("to add feature extraction")
-#for key in numberVectorDic.keys():
-
+    features = {}
+    for key in numberVectorDic.keys():
+        data = numberVectorDic[key]
+        feature = []
+        for i in range(len(data)):
+            feature.append(256 + sum(data[i]))
+        features.update({key:feature})
+        plt.hist(feature,bins=range(0,260,10))
+        plt.show()
+    return features
 
 #Retrieving all vectors for each number in given dic
 def GetNumberVectors(dataIn = trainDataIn, dataOut = trainDataOut):
