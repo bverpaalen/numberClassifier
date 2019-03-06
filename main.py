@@ -15,36 +15,64 @@ testDataOut = testDataPath + "out.csv"
 
 #Creates prediction model using image vectors calculating an average model for each class, classes are (0..9)
 def main():
-    numberVectorDic = {}
+    Assignment2()
+    Assignment3()
+
+def Assignment2():
     modelDic = {}
-    confusionMatrix = {}
-    inFile = open(trainDataIn)
-    outFile = open(trainDataOut)
+    confusionMatrix,trainMatrix = CreateConfusionMatrixs(10)
 
-    #Fill dics for numbers 0..9
-    for i in range(0,10):
-        numberVectorDic.update({i:[]})
-        modelDic.update({i:{}})
-        confusionMatrix.update({i:[0,0,0,0,0,0,0,0,0,0]})
+    # Fill dics for numbers 0..9
+    for i in range(0, 10):
+        modelDic.update({i: {}})
 
-    GetNumberVectors(inFile,outFile,numberVectorDic)
-    inFile.close()
-    outFile.close()
+    numberVectorDic = GetNumberVectors()
 
     GetNumberAverageAndRadius(numberVectorDic, modelDic)
 
     print("Train set")
-    TestModel(modelDic,trainDataIn,trainDataOut,confusionMatrix=None)
+    TestModel(modelDic, trainDataIn, trainDataOut, confusionMatrix=trainMatrix)
 
-    #PrintMatrix(confusionMatrix)
+    # PrintMatrix(trainMatrix,"train")
 
     print("Test set")
-    TestModel(modelDic,testDataIn,testDataOut,confusionMatrix)
+    TestModel(modelDic, testDataIn, testDataOut, confusionMatrix)
 
-    PrintMatrix(confusionMatrix)
+    PrintMatrix(confusionMatrix, "test")
+
+def Assignment3():
+    trainMatrix,testMatrix = CreateConfusionMatrixs(10)
+    numberVectorDic = GetNumberVectors()
+
+    features = ExtractFeatures(numberVectorDic)
+
+
+def CreateConfusionMatrixs(size=10):
+    matrix = {}
+    list = []
+    for i in range(size):
+        list.append(0)
+
+    for i in range(size):
+        matrix.update({i:list})
+
+    return matrix,matrix
+
+def ExtractFeatures(numberVectorDic):
+    print("to add feature extraction")
+#for key in numberVectorDic.keys():
+
 
 #Retrieving all vectors for each number in given dic
-def GetNumberVectors(inFile, outFile, numberVectorDic):
+def GetNumberVectors(dataIn = trainDataIn, dataOut = trainDataOut):
+    numberVectorDic = {}
+
+    for i in range(0, 10):
+        numberVectorDic.update({i: []})
+
+    inFile = open(dataIn)
+    outFile = open(dataOut)
+
     #First read
     inLine = inFile.readline()
     outLine = outFile.readline()
@@ -58,6 +86,10 @@ def GetNumberVectors(inFile, outFile, numberVectorDic):
 
         inLine = inFile.readline()
         outLine = outFile.readline()
+    inFile.close()
+    outFile.close()
+
+    return numberVectorDic
 
 #Calculates average and radius for each number from given numberVectorDic
 def GetNumberAverageAndRadius(numberVectorDic, modelDic):
@@ -126,9 +158,9 @@ def PredictNumber(model, vector):
         average = np.array(model[key]["average"])
         vector = np.array(vector)
 
-        #distance = skm.euclidean_distances(vector.reshape(1,-1),average.reshape(1,-1))
+        distance = skm.euclidean_distances(vector.reshape(1,-1),average.reshape(1,-1))
         #distance = skm.pairwise.cosine_distances(vector.reshape(1,-1),average.reshape(1,-1))
-        distance = skm.pairwise.manhattan_distances(vector.reshape(1,-1),average.reshape(1,-1))
+        #distance = skm.pairwise.manhattan_distances(vector.reshape(1,-1),average.reshape(1,-1))
 
         if distance < nearestDistance:
             nearestDistance = distance
@@ -136,16 +168,18 @@ def PredictNumber(model, vector):
 
     return prediction
 
-def PrintMatrix(matrix):
+def PrintMatrix(matrix,filename):
     npMat = np.empty([10,10])
     for key in matrix.keys():
         #print(str(key) + ":"+str(matrix[key]))
         npMat[key] = np.array(matrix[key])
 
+    print(npMat)
     ax = sns.heatmap(npMat,annot=True)
     ax.invert_yaxis()
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Label")
-    ax.figure.savefig("heatmap")
+    ax.figure.savefig(filename)
 
-main()
+if __name__ == '__main__':
+    main()
