@@ -14,6 +14,8 @@ testDataPath = "./data/test_"
 testDataIn = testDataPath + "in.csv"
 testDataOut = testDataPath + "out.csv"
 
+binSize = round(256/2)
+
 #Creates prediction model using image vectors calculating an average model for each class, classes are (0..9)
 def main():
     Assignment2()
@@ -44,10 +46,127 @@ def Assignment2():
 def Assignment3():
     trainMatrix,testMatrix = CreateConfusionMatrixs(10)
     numberVectorDic = GetNumberVectors()
+    classChance = CalculateClassChance()
 
-    features = ExtractFeatures(numberVectorDic)
-    print(features)
+    histograms = ExtractFeatures(numberVectorDic)
 
+    calculateAcurracy(histograms,classChance)
+
+""" for i in range(10):
+        his1 = features[i]
+        for j in range(i,10):
+            his2 = features[j]
+            print("compare "+str(i)+" and "+str(j)+": "+str(histogram_intersection_chance(his1[0],his2[0])))"""
+
+def calculateAcurracy(histograms,classChance,pathIn = trainDataIn,pathOut = trainDataOut):
+    good = 0
+    false = 0
+
+    fileIn = open(pathIn)
+    fileOut = open(pathOut)
+
+    lineIn = fileIn.readline()
+    lineOut = fileOut.readline()
+
+    while(lineIn and lineOut):
+        label = lineOut[0]
+        vector = list(map(float,lineIn.replace("\n", "").split(",")))
+        feature = extractFeature(vector)
+        chances = [-1] * 10
+
+        for key in histograms.keys():
+            chance = chance_in_histogram(histograms[key],feature) * classChance[str(key)]
+            chances[key] = chance
+        sumChance = sum(chances)
+
+        highest = -1
+        if(sumChance > 0):
+            for i in range(10):
+                finalChance = chances[i] / sumChance
+                if(finalChance > highest):
+                    highest = finalChance
+                    prediction = i
+        else:
+            print("No prediction")
+            print(label)
+            print(vector)
+            prediction = -1
+
+        if(str(prediction) == label):
+            print("Correct label")
+            good += 1
+        else:
+            print("Prediction: "+str(prediction)+", Label: "+str(label))
+            false +=1
+        lineIn = fileIn.readline()
+        lineOut = fileOut.readline()
+
+    print(good)
+    print(false)
+
+def CalculateClassChance(path=trainDataOut):
+    file = open(path)
+    numbers = {}
+    total = 0
+    line = file.readline()
+    while(line):
+        number = line[0]
+
+        if number in numbers.keys():
+            numbers[number] += 1
+        else:
+            numbers.update({number:1})
+        total += 1
+        line = file.readline()
+
+    for number in numbers.keys():
+        numbers[number] = numbers[number] / total
+    return numbers
+
+def histogram_intersection_chance(h1, h2):
+    sm = 0
+    for i in range(binSize-1):
+        sm += min(h1[i],h2[i])
+    return 2*sm/(sum(h1) + sum(h2))
+
+def chance_in_histogram(hist,x):
+    bins = hist[1]
+
+    for i in range(0,len(bins)-1):
+        min = bins[i]
+        max = bins[i+1]
+
+        if(x > min and x < max):
+            inBin = hist[0][i]
+            chance = sum(hist[0]) / inBin
+            return chance
+    return 0
+
+def ExtractFeatures(numberVectorDic):
+    features = {}
+    for key in numberVectorDic.keys():
+        keyVector = numberVectorDic[key]
+        feature = extractFeatureVectors(keyVector)
+        features.update({key: np.histogram(feature)})
+    return features
+
+
+def extractFeatureVectors(keyVector):
+    feature = []
+    for i in range(len(keyVector)):
+        vector = keyVector[i]
+        toAppend = extractFeature(vector)
+        feature.append(toAppend)
+    return feature
+
+
+def extractFeature(vector):
+    toAppend = 0
+    for j in range(len(vector)):
+
+        if (vector[j] > 0.8 or vector[j] < -0.8):
+            toAppend += 1
+    return toAppend
 
 def CreateConfusionMatrixs(size=10):
     matrix = {}
@@ -59,18 +178,6 @@ def CreateConfusionMatrixs(size=10):
         matrix.update({i:list})
 
     return matrix,matrix
-
-def ExtractFeatures(numberVectorDic):
-    features = {}
-    for key in numberVectorDic.keys():
-        data = numberVectorDic[key]
-        feature = []
-        for i in range(len(data)):
-            feature.append(256 + sum(data[i]))
-        features.update({key:feature})
-        plt.hist(feature,bins=range(0,260,10))
-        plt.show()
-    return features
 
 #Retrieving all vectors for each number in given dic
 def GetNumberVectors(dataIn = trainDataIn, dataOut = trainDataOut):
