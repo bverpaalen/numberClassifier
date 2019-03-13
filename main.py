@@ -19,7 +19,7 @@ binSize = round(256/2)
 #Creates prediction model using image vectors calculating an average model for each class, classes are (0..9)
 def main():
     Assignment2()
-    Assignment3()
+    Assignment3(0,9)
 
 def Assignment2():
     modelDic = {}
@@ -41,22 +41,26 @@ def Assignment2():
     print("Test set")
     TestModel(modelDic, testDataIn, testDataOut, confusionMatrix)
 
-    PrintMatrix(confusionMatrix, "test")
+    #PrintMatrix(confusionMatrix, "test")
 
-def Assignment3():
+def Assignment3(n1,n2):
     trainMatrix,testMatrix = CreateConfusionMatrixs(10)
     numberVectorDic = GetNumberVectors()
     classChance = CalculateClassChance()
 
     histograms = ExtractFeatures(numberVectorDic)
 
-    calculateAcurracy(histograms,classChance)
+    #calculateAcurracy(histograms,classChance)
 
-""" for i in range(10):
-        his1 = features[i]
+    for i in range(10):
+        his1 = histograms[i][0]
         for j in range(i,10):
-            his2 = features[j]
-            print("compare "+str(i)+" and "+str(j)+": "+str(histogram_intersection_chance(his1[0],his2[0])))"""
+            his2 = histograms[j][0]
+            answer = round(1-histogram_intersection_chance(his1,his2),1)
+            trainMatrix[j][i] = answer
+            trainMatrix[i][j] = answer
+            print("compare "+str(i)+" and "+str(j)+": "+str(histogram_intersection_chance(his1,his2)))
+    PrintMatrix(trainMatrix,"hisIntersection")
 
 def calculateAcurracy(histograms,classChance,pathIn = trainDataIn,pathOut = trainDataOut):
     good = 0
@@ -147,7 +151,7 @@ def ExtractFeatures(numberVectorDic):
     for key in numberVectorDic.keys():
         keyVector = numberVectorDic[key]
         feature = extractFeatureVectors(keyVector)
-        features.update({key: np.histogram(feature)})
+        features.update({key: np.histogram(feature,bins=binSize)})
     return features
 
 
@@ -170,11 +174,11 @@ def extractFeature(vector):
 
 def CreateConfusionMatrixs(size=10):
     matrix = {}
-    list = []
-    for i in range(size):
-        list.append(0)
 
     for i in range(size):
+        list = []
+        for j in range(size):
+            list.append(0)
         matrix.update({i:list})
 
     return matrix,matrix
