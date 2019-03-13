@@ -14,7 +14,7 @@ testDataPath = "./data/test_"
 testDataIn = testDataPath + "in.csv"
 testDataOut = testDataPath + "out.csv"
 
-binSize = round(256/2)
+binSize = round(256)
 
 #Creates prediction model using image vectors calculating an average model for each class, classes are (0..9)
 def main():
@@ -56,9 +56,8 @@ def Assignment3(n1,n2):
         his1 = histograms[i][0]
         for j in range(i,10):
             his2 = histograms[j][0]
-            answer = round(1-histogram_intersection_chance(his1,his2),1)
-            trainMatrix[j][i] = answer
-            trainMatrix[i][j] = answer
+            trainMatrix[j][i] = round(histogram_intersection_chance(his1,his2),1)
+            trainMatrix[i][j] = round(histogram_intersection_chance(his2,his1),1)
             print("compare "+str(i)+" and "+str(j)+": "+str(histogram_intersection_chance(his1,his2)))
     PrintMatrix(trainMatrix,"hisIntersection")
 
@@ -130,8 +129,9 @@ def CalculateClassChance(path=trainDataOut):
 def histogram_intersection_chance(h1, h2):
     sm = 0
     for i in range(binSize-1):
-        sm += min(h1[i],h2[i])
-    return 2*sm/(sum(h1) + sum(h2))
+        if(0 < h2[i]):
+            sm += h1[i]
+    return sm/sum(h1)
 
 def chance_in_histogram(hist,x):
     bins = hist[1]
@@ -168,7 +168,7 @@ def extractFeature(vector):
     toAppend = 0
     for j in range(len(vector)):
 
-        if (vector[j] > 0.8 or vector[j] < -0.8):
+        if (vector[j] < -0.9):
             toAppend += 1
     return toAppend
 
