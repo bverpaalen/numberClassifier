@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 
 
-trainDataPath = "D:/Career/Leiden/Masters/2nd Semester/Neural Networks/Assignments/Assignment 1/numberClassifier/data/train_"
+trainDataPath = "./data/train_"
 trainDataIn = trainDataPath + "in.csv"
 trainDataOut = trainDataPath + "out.csv"
 
-testDataPath = "D:/Career/Leiden/Masters/2nd Semester/Neural Networks/Assignments/Assignment 1/numberClassifier/data/test_"
+testDataPath = "./data/test_"
 testDataIn = testDataPath + "in.csv"
 testDataOut = testDataPath + "out.csv"
 
