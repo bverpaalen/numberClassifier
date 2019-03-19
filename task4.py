@@ -36,7 +36,7 @@ class Perceptron:
         for i in range(0, 10):
             weights[:, i] = np.ramdom.rand(b, 1)
         
-        return weights
+        return np.asarray(weights)
     
     
     #The Perceptron Algorithm for computing the output of the perceptron
@@ -45,21 +45,32 @@ class Perceptron:
         a, b = np.shape(inputData)
         
         for i in range(0, len(a)):
-            weightedSum = np.dot(weights, inputData[i,:])
-            x, predictedOutput = np.shape(np.argmax(weightedSum)) #Determines the image class in predictedOutput
-            bestActivation = np.argmax(weightedSum)
+            weightedSum[i,:] = np.dot(weights, inputData[i,:])
+            activations[i,:] = sigmoid(weightedSum)
+            x, predictedOutput = np.shape(np.argmax(activations)) #Determines the image class in predictedOutput
         
-        return predictedOutput, bestActivation
+        return predictedOutput, activations
 
+    def sigmoid(x):
+        return 1 / (1 + np.math.e ** -x)
     
-    #Evaluating the class of the image and update weights accordingly:
-    def backPropagation(self, outputData, predictedOutput):
-       
-        for i in range(0, len(outputData)):
+    
+    #Using backpropagation algorithm to update weights accordingly:
+    def backPropagation(self, outputData, predictedOutput, activations, weights):
+        
+        for j in range(0, len(outputData))):
             
-            if outputData[i] == predictedOutput[i]:
-                prediction = 1
+            for i in range(0, 10):
+                
+                if i == outputData[j]:
+                    desiredActivations[j, i] = 1
                 else:
-                    prediction = 0
+                    desiredActivations[j, i] = 0
             
+        for j in range(0, len(outputData)):
             
+            cost[j, :] = np.square(activations[j, :] - desiredActivations[j, :])
+            for i in range(0, 10):
+                
+                if cost[j, i] > 0:
+                    weights = 
