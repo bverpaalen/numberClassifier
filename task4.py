@@ -1,5 +1,6 @@
 import numpy as np
 
+epochs = 10000
 
 
 class Perceptron():
@@ -15,36 +16,25 @@ class Perceptron():
         c = np.ones((a, 1))
         return np.hstack((c, inputData))
     
-    def initialWeights(self, classes, dimensions):
-        weights = np.random.rand(classes, dimensions)
-        return weights
-    
-    
-    def backPropagate(self, weights, predictedOutput, outputData):
-        count = 1
-        iterations = 0
+    def initialWeights(self, numClasses, numInputs):
+        self.weights = np.random.rand(numInputs, numClasses)
+        return self.weights
 
-        while(count > 0 or iterations < 10000):
-            count = 0
-            
-            if outputData != predictedOutput:
-                weights = self.updateWeight(weights, predictedOutput, outputData)
-                count += 1
-    
-            iterations += 1
-            return weights
-
-    def updateWeight(self, weights, predictedOutput, outputData):
+    def backPropagate(self, prediction, label,input):
         
         for i in range (0, 257):
-            
-            if weights[i] < 0:
-                weights[i] += 1
+            node = input[i]
+            nodePrediction = np.argmax(node*self.weights[i,:])
+
+            if label == nodePrediction:
+                self.weights[i] = self.weights[i] + input[i]
             else:
-                weights[i] += 0.1
-        
-        return weights
-    
+                self.weights[i] = self.weights[i] - input[i]
+
+    def predict(self,input):
+        dot = np.dot(input,self.weights)
+        prediction = np.argmax(dot)
+        return prediction
 
 
 trainDataPath = "./data/train_"
@@ -77,19 +67,18 @@ weight_matrix = Train.weights
 
 #Prediction by the perceptron:
 for i in range (0, len(oTrain)):
-    x = int(oTrain[i])
-    prediction[i] = np.argmax(np.dot(iTrain[i], weight_matrix[x, :]))
-    
+    label = int(oTrain[i])
+    prediction[i] = Train.predict(iTrain[i])
 
 iteration = 0
 misclassify = 0
 j = 0
 
 for i in range(0, len(oTrain)):
-    x = int(oTrain[i])
+    label = int(oTrain[i])
     
-    while (oTrain[i] != prediction[i] and iteration < 10):
-        weight_matrix[x, :] = Train.backPropagate(weight_matrix[x, :], prediction[i], oTrain[i])
+    while (oTrain[i] != prediction[i] and iteration < epochs):
+        Train.backPropagate(prediction[i], oTrain[i],iTrain[i])
         
         if oTrain[i] != prediction[i]:
             misclassify += 1
@@ -97,7 +86,7 @@ for i in range(0, len(oTrain)):
         iteration += 1
         
         #Re-prediction by the perceptron:
-        prediction[i] = np.argmax(np.dot(iTrain[i], weight_matrix[x, :]))
+        prediction[i] = Train.predict(iTrain[i])
     
     print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
 
@@ -108,13 +97,12 @@ Test = Perceptron(inputTest, outputTest, cl, dim)
 #Testing on the 1000 images in the training set of the MNIST data:
 iTest = Test.inputData
 oTest = Test.outputData
-weight_matrix2 = Test.weights
 
 accuracy = 0
 
 for inputD, outputD in zip(iTest, oTest):
-    y = int(outputD)
-    predictionTest = np.argmax(np.dot(inputD, weight_matrix2[x, :]))
+    label = int(outputD)
+    predictionTest = Train.predict(inputD)
     
     if(outputD == predictionTest):
         accuracy += 1
