@@ -17,15 +17,16 @@ class Perceptron():
     
     def initialWeights(self, classes, dimensions):
         weights = np.random.rand(classes, dimensions)
-        return np.array(weights)
+        return weights
     
     
     def backPropagate(self, weights, predictedOutput, outputData):
         count = 1
         iterations = 0
 
-        while(count > 0 or iterations > 100):
+        while(count > 0 or iterations < 10000):
             count = 0
+            
             if outputData != predictedOutput:
                 weights = self.updateWeight(weights, predictedOutput, outputData)
                 count += 1
@@ -57,8 +58,8 @@ testDataOut = testDataPath + "out.csv"
 inputTraining = np.loadtxt(trainDataIn, dtype = 'float', delimiter = ',')
 outputTraining = np.loadtxt(trainDataOut, dtype = 'float', delimiter = ',')
 
-inputTest = np.loadtxt(testDataIn, dtype = 'str', delimiter = ',')
-outputTest = np.loadtxt(testDataOut, dtype = 'str', delimiter = ',')
+inputTest = np.loadtxt(testDataIn, dtype = 'float', delimiter = ',')
+outputTest = np.loadtxt(testDataOut, dtype = 'float', delimiter = ',')
 
 
 #Training on 1707 images in the training set of the MNIST data:
@@ -74,36 +75,37 @@ oTrain = Train.outputData
 prediction = np.zeros(len(oTrain))
 weight_matrix = Train.weights
 
+#Prediction by the perceptron:
 for i in range (0, len(oTrain)):
-    j = 0
-    prediction[i] = np.argmax(np.dot((iTrain[i], weight_matrix[j])))
-    j += 1
-   
-    if j > 257:
-        j = 0
-        
+    x = int(oTrain[i])
+    prediction[i] = np.argmax(np.dot(iTrain[i], weight_matrix[x, :]))
+    
 
 iteration = 0
-misclassify = []
+misclassify = 0
+j = 0
 
 for i in range(0, len(oTrain)):
     x = int(oTrain[i])
     
-    while (oTrain[i] != prediction[i] or iteration > 0):
+    while (oTrain[i] != prediction[i] and iteration < 10):
         weight_matrix[x, :] = Train.backPropagate(weight_matrix[x, :], prediction[i], oTrain[i])
         
         if oTrain[i] != prediction[i]:
-            misclassify.append(i)
+            misclassify += 1
         
-        prediction[i] = Train.feedForward(iTrain[i])
+        iteration += 1
+        
+        #Re-prediction by the perceptron:
+        prediction[i] = np.argmax(np.dot(iTrain[i], weight_matrix[x, :]))
     
-    print('Unfortunately, the' + i + 'th image remains misclassified')
+    print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
 
 
 
 Test = Perceptron(inputTest, outputTest, cl, dim)
 
-#Initialization:
+#Testing on the 1000 images in the training set of the MNIST data:
 iTest = Test.inputData
 oTest = Test.outputData
 weight_matrix2 = Test.weights
@@ -111,9 +113,11 @@ weight_matrix2 = Test.weights
 accuracy = 0
 
 for inputD, outputD in zip(iTest, oTest):
-    predictionTest = np.argmax(np.dot(inputD, weight_matrix2))
+    y = int(outputD)
+    predictionTest = np.argmax(np.dot(inputD, weight_matrix2[x, :]))
     
     if(outputD == predictionTest):
         accuracy += 1
+
 accuracy /= inputTest.shape[0]
 print('The accuracy of the algorthim is :' + str(accuracy * 100))
