@@ -77,8 +77,9 @@ while (iteration < epochs):
     iteration += 1
     for i in range(0, len(oTrain)):
         label = int(oTrain[i])
-    
-        Train.backPropagate(label,iTrain[i],prediction[i])
+
+        if(prediction[i] != label):
+            Train.backPropagate(label,iTrain[i],prediction[i])
 
         #Re-prediction by the perceptron:
         prediction[i] = Train.predict(iTrain[i])
