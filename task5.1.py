@@ -8,7 +8,12 @@ epochs = 200
 epsilon = 0.001
 lr = 0.01
 
-inputs = [(0, 0), (0, 1), (1, 0), (1, 1)]
+possibilities = [[0, 0], [0, 1], [1, 0], [1, 1]]
+inputs = []
+
+for i in range(1000):
+    j = random.randint(0,3)
+    inputs.append(possibilities[j])
 
 def createLabel(inputs):
     x0 = inputs[0]
@@ -32,14 +37,14 @@ class network():
     def __init__(self,inputSize,depth,width):
         trueWidth = max(depth,width)+1
         self.inputNodes = np.empty(inputSize+1)
-        self.inputNodes[0] = -1
+        self.inputNodes[0] = 1
         self.hiddenNodes = np.empty((depth,width+1))
-        self.hiddenNodes[:][0] = -1
+        self.hiddenNodes[:][0] = 1
         self.initialWeights(depth+1,trueWidth)
 
     def initialWeights(self,depth,width):
         #np.random.seed(329)
-        self.weights = np.random.rand(depth, width)
+        self.weights = np.random.rand(depth, width)*2-1
 
     def predict(self,input):
         for i in range(2):
@@ -68,7 +73,6 @@ class network():
         for i in range(len(self.hiddenNodes[-1])):
             outputNode += self.weights[-1][i] * self.hiddenNodes[-1][i]
         outputNode = outputNode/len(self.hiddenNodes[-1])
-
         return outputNode
 
     def mse(self,inputs):
@@ -76,6 +80,8 @@ class network():
         for i in range(len(inputs)):
             prediction = self.predict(inputs[i])
             target = createLabel(inputs[i])
+            print("pred: "+str(prediction))
+            print(prediction-target)
             SE += (prediction - target)**2
         MSE = np.mean(SE)
         return MSE
@@ -91,6 +97,8 @@ class network():
             prediction = self.predict(inputs[i])
             label = createLabel(inputs[i])
             if(prediction != label):
+                print(prediction)
+                print(int(label))
                 mismatch +=1
         print(mismatch/len(inputs)*100)
 net = network(2,2,2)
@@ -98,7 +106,6 @@ net = network(2,2,2)
 for epoch in range(epochs):
     random.shuffle(inputs)
     scoreMatrix = grdmse(inputs,net)
-    print(scoreMatrix)
     net.changeWeights(scoreMatrix)
 
 net.test(inputs)
