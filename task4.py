@@ -1,6 +1,6 @@
 import numpy as np
 
-epochs = 100
+epochs = 10
 learningRate = 0.05
 
 class Perceptron():
@@ -26,10 +26,11 @@ class Perceptron():
             node = input[i]
             nodePrediction = np.argmax(node*self.weights[i])
 
-            if int(label) == int(nodePrediction):
-                self.weights[i] = self.weights[i] + node
-            else:
-                self.weights[i] = self.weights[i] - node
+            for j in range(0,10):
+                if(j==label):
+                    self.weights[i][j] = self.weights[i][j] + node
+                else:
+                    self.weights[i][j] = self.weights[i][j] - node
 
     def predict(self,input):
         dot = np.dot(input,self.weights)
