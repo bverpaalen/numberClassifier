@@ -1,7 +1,6 @@
 import numpy as np
 
-epochs = 10
-learningRate = 0.05
+epochs = 200
 
 class Perceptron():
     
@@ -59,37 +58,29 @@ cl = 10
 
 Train = Perceptron(inputTraining, outputTraining, cl, dim)
 
-#Initialization:
-iTrain = Train.inputData
-oTrain = Train.outputData
-
-prediction = np.zeros(len(oTrain))
+prediction = np.zeros(len(Train.outputData))
 weight_matrix = Train.weights
-
-#Prediction by the perceptron:
-for i in range (0, len(oTrain)):
-    label = int(oTrain[i])
-    prediction[i] = Train.predict(iTrain[i])
 
 iteration = 0
 misclassify = 0
 j = 0
 while (iteration < epochs):
     iteration += 1
-    for i in range(0, len(oTrain)):
-        label = int(oTrain[i])
+    for i in range(0, len(Train.outputData)):
+        label = int(Train.outputData[i])
+        prediction[i] = Train.predict(Train.inputData[i])
 
         if(prediction[i] != label):
-            Train.backPropagate(label,iTrain[i],prediction[i])
+            Train.backPropagate(label,Train.inputData[i],prediction[i])
 
         #Re-prediction by the perceptron:
-        prediction[i] = Train.predict(iTrain[i])
+
 
 
 Test = Perceptron(inputTest, outputTest, cl, dim)
 
 #Testing on the 1000 images in the training set of the MNIST data:
-iTest = Test.inputData
+iTest = Train.addBias(inputTest)
 oTest = Test.outputData
 
 accuracy = 0
@@ -100,8 +91,8 @@ for inputD, outputD in zip(iTest, oTest):
     
     if(outputD == predictionTest):
         accuracy += 1
-
-    print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
+    else:
+        print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
     i+=1
 
 accuracy /= inputTest.shape[0]
