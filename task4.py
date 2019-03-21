@@ -1,7 +1,7 @@
 import numpy as np
 
-epochs = 10000
-
+epochs = 100
+learningRate = 0.05
 
 class Perceptron():
     
@@ -10,7 +10,7 @@ class Perceptron():
         self.inputData = self.addBias(inputData)
         self.outputData = outputData
         self.weights = self.initialWeights(classes, dimensions)
-        
+
     def addBias(self, inputData):
         a, b = np.shape(inputData)
         c = np.ones((a, 1))
@@ -20,16 +20,16 @@ class Perceptron():
         self.weights = np.random.rand(numInputs, numClasses)
         return self.weights
 
-    def backPropagate(self, prediction, label,input):
+    def backPropagate(self,label,input,prediction):
         
         for i in range (0, 257):
             node = input[i]
-            nodePrediction = np.argmax(node*self.weights[i,:])
+            nodePrediction = np.argmax(node*self.weights[i])
 
-            if label == nodePrediction:
-                self.weights[i] = self.weights[i] + input[i]
+            if int(label) == int(nodePrediction):
+                self.weights[i] = self.weights[i] + node
             else:
-                self.weights[i] = self.weights[i] - input[i]
+                self.weights[i] = self.weights[i] - node
 
     def predict(self,input):
         dot = np.dot(input,self.weights)
@@ -73,23 +73,15 @@ for i in range (0, len(oTrain)):
 iteration = 0
 misclassify = 0
 j = 0
-
-for i in range(0, len(oTrain)):
-    label = int(oTrain[i])
+while (iteration < epochs):
+    iteration += 1
+    for i in range(0, len(oTrain)):
+        label = int(oTrain[i])
     
-    while (oTrain[i] != prediction[i] and iteration < epochs):
-        Train.backPropagate(prediction[i], oTrain[i],iTrain[i])
-        
-        if oTrain[i] != prediction[i]:
-            misclassify += 1
-        
-        iteration += 1
-        
+        Train.backPropagate(label,iTrain[i],prediction[i])
+
         #Re-prediction by the perceptron:
         prediction[i] = Train.predict(iTrain[i])
-    
-    print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
-
 
 
 Test = Perceptron(inputTest, outputTest, cl, dim)
@@ -99,13 +91,16 @@ iTest = Test.inputData
 oTest = Test.outputData
 
 accuracy = 0
-
+i=0
 for inputD, outputD in zip(iTest, oTest):
     label = int(outputD)
     predictionTest = Train.predict(inputD)
     
     if(outputD == predictionTest):
         accuracy += 1
+
+    print('Unfortunately, the ' + str(i) + 'th image remains misclassified')
+    i+=1
 
 accuracy /= inputTest.shape[0]
 print('The accuracy of the algorthim is :' + str(accuracy * 100))
