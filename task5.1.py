@@ -4,20 +4,20 @@ import numpy as np
 import math as m
 import copy
 
-epochs = 200
-epsilon = 0.001
-lr = 0.01
+epochs = 20000
+epsilon = 0.01
+lr = 3
 
 possibilities = [[0, 0], [0, 1], [1, 0], [1, 1]]
 inputs = []
 
-for i in range(1000):
+for i in range(100):
     j = random.randint(0,3)
     inputs.append(possibilities[j])
 
-def createLabel(inputs):
-    x0 = inputs[0]
-    x1 = inputs[1]
+def createLabel(input):
+    x0 = input[0]
+    x1 = input[1]
     return (x0 == 1 or x1 ==1) and not (x0==1 and x1==1)
 
 def grdmse(data,network):
@@ -32,6 +32,9 @@ def grdmse(data,network):
             scoreMatrix[i][j] = score
     return scoreMatrix
 
+def sigmoid(x):
+    return 1 / (1 + m.e ** -x)
+
 class network():
 
     def __init__(self,inputSize,depth,width):
@@ -45,6 +48,7 @@ class network():
     def initialWeights(self,depth,width):
         #np.random.seed(329)
         self.weights = np.random.rand(depth, width)*2-1
+        print(self.weights)
 
     def predict(self,input):
         for i in range(2):
@@ -55,16 +59,16 @@ class network():
     def calculateHiddenNodes(self):
         for i in range(len(self.hiddenNodes)):
             layer = copy.deepcopy(self.hiddenNodes[i])
-            for j in range(len(layer)):
+            for j in range(1,len(layer)):
                 layer[j] = 0
                 if i == 0:
                     for k in range(len(self.inputNodes)):
                         layer[j] += self.weights[0][k] * self.inputNodes[k]
-                    layer[j] = 1 / (1 + m.e ** -layer[j])
+                    layer[j] = sigmoid(layer[j])
                 else:
                     for k in range(len(self.hiddenNodes[j-1])):
                         layer[j] += self.weights[i][k] * self.hiddenNodes[j-1][k]
-                    layer[j] = 1 / (1 + m.e ** -layer[j])
+                    layer[j] = sigmoid(layer[j])
             self.hiddenNodes[i] = layer
 
     def calculateOutputNode(self):
@@ -73,23 +77,25 @@ class network():
         for i in range(len(self.hiddenNodes[-1])):
             outputNode += self.weights[-1][i] * self.hiddenNodes[-1][i]
         outputNode = outputNode/len(self.hiddenNodes[-1])
-        return outputNode
+        return round(outputNode,3)
 
     def mse(self,inputs):
         SE = 0
         for i in range(len(inputs)):
             prediction = self.predict(inputs[i])
             target = createLabel(inputs[i])
-            print("pred: "+str(prediction))
-            print(prediction-target)
+            #print("pred: "+str(prediction))
+            #print(prediction-target)
             SE += (prediction - target)**2
-        MSE = np.mean(SE)
+        MSE = SE/len(inputs)
         return MSE
 
     def changeWeights(self,scoreMatrix):
+        oldW = copy.deepcopy(self.weights)
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
                 self.weights[i][j] = self.weights[i][j] - lr*scoreMatrix[i][j]
+        print(self.weights)
 
     def test(self,inputs):
         mismatch = 0
@@ -100,10 +106,12 @@ class network():
                 print(prediction)
                 print(int(label))
                 mismatch +=1
-        print(mismatch/len(inputs)*100)
+        print("Accuracy: "+str(100-mismatch/len(inputs)*100))
 net = network(2,2,2)
 
+scoreMatrix = 0
 for epoch in range(epochs):
+    OSM = scoreMatrix
     random.shuffle(inputs)
     scoreMatrix = grdmse(inputs,net)
     net.changeWeights(scoreMatrix)
