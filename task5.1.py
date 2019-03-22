@@ -5,8 +5,8 @@ import math as m
 import copy
 
 epochs = 20000
-epsilon = 0.01
-lr = 3
+epsilon = 0.005
+lr = 0.5
 
 possibilities = [[0, 0], [0, 1], [1, 0], [1, 1]]
 inputs = []
@@ -77,7 +77,7 @@ class network():
         for i in range(len(self.hiddenNodes[-1])):
             outputNode += self.weights[-1][i] * self.hiddenNodes[-1][i]
         outputNode = outputNode/len(self.hiddenNodes[-1])
-        return round(outputNode,3)
+        return outputNode
 
     def mse(self,inputs):
         SE = 0
@@ -102,7 +102,7 @@ class network():
         for i in range(len(inputs)):
             prediction = self.predict(inputs[i])
             label = createLabel(inputs[i])
-            if(prediction != label):
+            if((prediction - label) > 0.1):
                 print(prediction)
                 print(int(label))
                 mismatch +=1
